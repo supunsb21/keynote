@@ -1,0 +1,1140 @@
+<!doctype html>
+<html lang="si">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>සාහිත්‍යය කියවීමේ කලාව</title>
+<style>
+@font-face {
+  font-family: "AFSandarenu";
+  src: url("AFSandarenu-Regular.ttf") format("truetype");
+  font-display: swap;
+}
+
+:root {
+  --paper: #F1E9DA;
+  --ink: #2C241E;
+  --muted: #6B5C4F;
+  --accent: #9A4528;
+  --accent-soft: #D9B79C;
+  --line: #CDBDA4;
+  --leaf: #6F7F4E;
+  --ease: cubic-bezier(.2, .7, .2, 1);
+  --font: "AFSandarenu", "Iowan Old Style", Georgia, "Sinhala Sangam MN", "Noto Serif Sinhala", serif;
+  --latin: "Iowan Old Style", Georgia, "Times New Roman", serif;
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; height: 100%; overflow: hidden;
+  background: var(--paper); color: var(--ink);
+  font-family: var(--font); font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+}
+b, strong { font-weight: 400; color: var(--accent); }
+button { font: inherit; }
+
+/* ---------- stage: fixed 1920×1080 canvas scaled to fit ---------- */
+#stage {
+  position: absolute; left: 50%; top: 50%;
+  width: 1920px; height: 1080px;
+  transform: translate(-50%, -50%) scale(var(--s, .5));
+  overflow: hidden; background: var(--paper);
+}
+.bg {
+  position: absolute; inset: 0;
+  background: center / cover no-repeat;
+  opacity: 0; transform: scale(1.035);
+  transition: opacity 1.1s var(--ease), transform 2.2s var(--ease);
+}
+.bg.on { opacity: 1; transform: none; }
+
+#sec {
+  position: absolute; left: 140px; top: 64px;
+  font-size: 26px; color: var(--muted);
+  transition: opacity .5s var(--ease);
+}
+
+/* ---------- slides ---------- */
+.slide {
+  position: absolute; inset: 0;
+  padding: 0 0 0 140px;
+  display: flex; flex-direction: column; justify-content: center;
+  opacity: 0; visibility: hidden;
+  transition: opacity .3s ease-in, visibility 0s .3s;
+}
+.slide.active {
+  opacity: 1; visibility: visible;
+  transition: opacity .45s var(--ease) .05s, visibility 0s;
+}
+.col { width: 790px; }
+.slide[data-stage] .col { padding-top: 150px; }
+aside.notes { display: none; }
+
+/* entrance + step reveals */
+.a, .f {
+  opacity: 0; transform: translateY(22px);
+  transition: opacity .7s var(--ease), transform .7s var(--ease);
+}
+.a { transition-delay: calc(var(--i, 0) * 110ms + 180ms); }
+.slide.in .a, .f.shown { opacity: 1; transform: none; }
+
+/* ---------- type ---------- */
+.kicker {
+  display: flex; align-items: center; gap: 18px;
+  font-size: 30px; color: var(--accent); margin: 0 0 30px;
+}
+.kicker::before { content: ""; width: 48px; height: 2px; background: currentColor; flex: none; }
+.display { font-size: 124px; line-height: 1.25; font-weight: 400; margin: 0 0 24px; }
+.display .sub { display: block; font-size: 76px; color: var(--accent); margin-top: 12px; }
+.title { font-size: 80px; line-height: 1.32; font-weight: 400; margin: 0 0 30px; }
+.title.md { font-size: 62px; }
+.lead { font-size: 44px; line-height: 1.6; margin: 0 0 20px; }
+.body { font-size: 36px; line-height: 1.6; margin: 0; }
+.muted { color: var(--muted); }
+.accent { color: var(--accent); }
+.latin { font-family: var(--latin); font-style: italic; }
+.quote { font-size: 58px; line-height: 1.55; margin: 0 0 28px; }
+.quote.sm { font-size: 46px; }
+.qmark {
+  font-family: var(--latin); font-size: 180px; line-height: .6;
+  color: var(--accent-soft); display: block; height: 80px;
+}
+.huge { font-size: 230px; line-height: 1.1; margin: 0; font-weight: 400; color: var(--accent); }
+.num {
+  font-family: var(--latin); font-size: 30px; color: var(--accent);
+  letter-spacing: .08em; margin: 0 0 14px; display: block;
+}
+.credit { font-family: var(--latin); font-size: 17px; color: var(--muted); margin-top: 8px; }
+
+/* chips */
+.chips { display: flex; flex-wrap: wrap; gap: 16px 18px; margin: 10px 0 30px; padding: 0; list-style: none; }
+.chips li {
+  font-size: 36px; padding: 10px 28px 12px;
+  border: 1.5px solid var(--line); border-radius: 999px;
+  background: rgba(255, 252, 245, .55);
+}
+.chips.big li { font-size: 44px; }
+.chips li.hl { border-color: var(--accent); color: var(--accent); }
+
+/* bullet list */
+.list { list-style: none; margin: 0; padding: 0; }
+.list li { position: relative; padding-left: 46px; font-size: 38px; line-height: 1.55; margin-bottom: 22px; }
+.list.sm li { font-size: 33px; margin-bottom: 18px; }
+.list li::before {
+  content: ""; position: absolute; left: 4px; top: .7em;
+  width: 16px; height: 2px; background: var(--accent);
+}
+
+/* stairs / journey: each row steps right with a drawn arrow */
+.stairs { list-style: none; margin: 20px 0 0; padding: 0; }
+.stairs li {
+  display: flex; align-items: center; gap: 22px;
+  font-size: 46px; line-height: 1.5; margin-bottom: 14px;
+  margin-left: calc(var(--k) * 64px);
+}
+.stairs li:first-child::before { display: none; }
+.stairs li::before {
+  content: ""; width: 44px; height: 2px; flex: none;
+  background: linear-gradient(90deg, var(--line), var(--accent));
+}
+.stairs li:last-child { color: var(--accent); }
+
+/* hierarchy (owners above slaves) */
+.tier { display: grid; gap: 0; margin: 10px 0 34px; width: 560px; }
+.tier div { font-size: 44px; padding: 14px 0; text-align: center; }
+.tier .top { border-bottom: 2px solid var(--accent); color: var(--accent); }
+.tier .low { color: var(--muted); }
+
+/* versus row */
+.vs { display: flex; align-items: center; gap: 26px; font-size: 40px; margin: 10px 0 26px; flex-wrap: wrap; }
+.vs .sep { width: 70px; height: 2px; background: var(--line); }
+
+/* equation */
+.eq { display: grid; gap: 6px; margin-top: 10px; }
+.eq .row { font-size: 54px; line-height: 1.45; }
+.eq .arrow { width: 2px; height: 42px; background: var(--line); margin-left: 24px; }
+.eq .final { color: var(--accent); font-size: 72px; }
+
+/* three ages */
+.ages { display: flex; align-items: center; gap: 0; margin-top: 6px; }
+.ages .age { font-size: 44px; }
+.ages .link { width: 64px; height: 2px; background: var(--line); margin: 0 22px; }
+
+/* big number */
+.count { font-size: 170px; line-height: 1.15; color: var(--accent); margin: 0 0 10px; }
+
+/* book types */
+.types { display: grid; gap: 26px; margin-top: 8px; }
+.types .t { display: grid; grid-template-columns: 90px 1fr; align-items: baseline; }
+.types .t > span { font-family: var(--latin); font-size: 30px; color: var(--accent); }
+.types h3 { font-size: 50px; font-weight: 400; margin: 0; line-height: 1.4; }
+.types h3 .latin { font-size: 32px; color: var(--muted); margin-left: 10px; }
+.types p { font-size: 34px; margin: 4px 0 0; color: var(--muted); }
+
+/* page counts */
+.pages { display: flex; align-items: center; gap: 18px; margin-top: 18px; }
+.pages > span { font-size: 40px; color: var(--muted); margin-right: 6px; }
+.pages b {
+  font-family: var(--latin); font-size: 44px; width: 96px; height: 96px;
+  border-radius: 50%; border: 1.5px solid var(--accent);
+  display: grid; place-items: center;
+}
+
+/* two books read in parallel */
+.bars { display: grid; gap: 22px; margin: 26px 0 30px; }
+.bar { display: grid; grid-template-columns: 250px 1fr; align-items: center; gap: 20px; }
+.bar > span { font-size: 34px; }
+.track { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; height: 20px; }
+.seg { background: var(--accent); border-radius: 3px; transform: scaleX(0); transform-origin: left; opacity: .85; }
+.bar:nth-child(2) .seg { background: var(--leaf); }
+.slide.in .seg { animation: grow-x .55s var(--ease) forwards; animation-delay: var(--d); }
+@keyframes grow-x { to { transform: scaleX(1); } }
+
+/* portraits & reference images */
+.who { display: flex; align-items: center; gap: 40px; margin-bottom: 34px; }
+.portrait {
+  width: 210px; height: 260px; flex: none; overflow: hidden;
+  -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 62%, transparent 100%);
+          mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 62%, transparent 100%);
+}
+.portrait img {
+  width: 100%; height: 100%; object-fit: cover; object-position: 50% 18%;
+  filter: sepia(.45) saturate(.75) contrast(.95); mix-blend-mode: multiply;
+}
+.portrait.mark { display: grid; place-items: center; -webkit-mask-image: none; mask-image: none; }
+.portrait.mark span { font-family: var(--latin); font-size: 260px; color: var(--accent-soft); line-height: 1; }
+.who h3 { font-size: 60px; font-weight: 400; margin: 0; }
+
+.cave { width: 790px; height: 300px; margin: 6px 0 26px; position: relative; }
+.cave img {
+  width: 100%; height: 100%; object-fit: cover;
+  filter: sepia(.3) saturate(.85); mix-blend-mode: multiply;
+  -webkit-mask-image: radial-gradient(ellipse 52% 54% at 50% 50%, #000 55%, transparent 100%);
+          mask-image: radial-gradient(ellipse 52% 54% at 50% 50%, #000 55%, transparent 100%);
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 1.4s var(--ease);
+}
+.f.shown .cave img, .cave.shown img { clip-path: inset(0 0 0 0); }
+
+/* poplars */
+.poplars { height: 230px; margin-bottom: 20px; }
+.poplars .tree { transform: scaleY(0); transform-box: fill-box; transform-origin: 50% 100%; }
+.slide.in .poplars .tree { animation: grow-y 1.6s var(--ease) forwards; }
+.slide.in .poplars .tree:nth-of-type(2) { animation-delay: .45s; }
+@keyframes grow-y { to { transform: scaleY(1); } }
+
+/* word-by-word (wind) */
+.words span {
+  display: inline-block; opacity: 0;
+  transform: translateX(-16px); filter: blur(6px);
+}
+.slide.in .words span {
+  animation: wind .9s var(--ease) forwards;
+  animation-delay: calc(var(--w) * 150ms + 500ms);
+}
+@keyframes wind { to { opacity: 1; transform: none; filter: blur(0); } }
+
+/* struck → new */
+.from { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--accent-soft); text-decoration-thickness: 2px; }
+
+/* ---------- history timeline (persists across slides) ---------- */
+#track {
+  position: absolute; left: 140px; top: 150px; width: 740px;
+  opacity: 0; transition: opacity .5s var(--ease); pointer-events: none;
+}
+#track.on { opacity: 1; }
+
+/* book cover (slides with data-cover) */
+#cover {
+  position: absolute; left: 1170px; top: 110px; height: 860px; aspect-ratio: 1748 / 2480;
+  margin: 0; border-radius: 4px; overflow: hidden; pointer-events: none;
+  box-shadow: 0 34px 70px rgba(60, 40, 20, .28), 0 8px 18px rgba(60, 40, 20, .16);
+  opacity: 0; transform: translateY(40px) rotate(2.5deg);
+  transition: opacity .8s var(--ease), transform 1.1s var(--ease);
+}
+#cover.on { opacity: 1; transform: rotate(2.5deg); }
+#cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+#track .rail { position: absolute; left: 0; right: 0; top: 8px; height: 2px; background: var(--line); }
+#track .fill {
+  position: absolute; inset: 0; background: var(--accent);
+  transform-origin: left; transform: scaleX(calc((var(--stage, 1) - 1) / 5));
+  transition: transform .9s var(--ease);
+}
+#track ol { list-style: none; margin: 0; padding: 0; position: relative; height: 70px; }
+#track li {
+  position: absolute; left: calc(var(--p) * 20%); top: 0;
+  transform: translateX(-50%); text-align: center; white-space: nowrap;
+}
+#track li i {
+  display: block; width: 18px; height: 18px; margin: 0 auto 12px;
+  border-radius: 50%; background: var(--paper); border: 2px solid var(--line);
+  transition: background .5s, border-color .5s, transform .5s var(--ease);
+}
+#track li span { font-size: 25px; color: var(--muted); transition: color .5s; }
+#track li.done i { background: var(--accent); border-color: var(--accent); }
+#track li.cur i { transform: scale(1.45); box-shadow: 0 0 0 6px rgba(154, 69, 40, .14); }
+#track li.cur span { color: var(--accent); }
+
+/* ---------- viewport UI (not scaled) ---------- */
+#ui {
+  position: fixed; left: 16px; bottom: 14px; z-index: 20;
+  display: flex; align-items: center; gap: 8px;
+  opacity: .55; transition: opacity .25s;
+}
+#ui:hover, #ui:focus-within { opacity: 1; }
+#ui button {
+  min-width: 44px; height: 44px; padding: 0 12px;
+  border: 1px solid var(--line); border-radius: 22px;
+  background: rgba(255, 252, 245, .8); color: var(--ink);
+  cursor: pointer; display: grid; place-items: center;
+  transition: background .2s, border-color .2s;
+}
+#ui button:hover { border-color: var(--accent); }
+#ui button:focus-visible, #presenter button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+#ui svg { width: 20px; height: 20px; }
+#count { font-family: var(--latin); font-size: 15px; color: var(--muted); padding: 0 8px; font-variant-numeric: tabular-nums; }
+#progress {
+  position: fixed; left: 0; bottom: 0; height: 3px; width: 100%; z-index: 20;
+  background: var(--accent); transform-origin: left; transform: scaleX(0);
+  transition: transform .5s var(--ease);
+}
+#hint {
+  position: fixed; right: 16px; bottom: 18px; z-index: 20;
+  font-family: var(--latin); font-size: 14px; color: var(--muted);
+  background: rgba(255, 252, 245, .85); padding: 8px 14px; border-radius: 20px;
+  transition: opacity .6s;
+}
+#hint.gone { opacity: 0; pointer-events: none; }
+
+/* notes drawer */
+#notes {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+  max-height: 46vh; overflow-y: auto;
+  background: #FBF7EF; border-top: 1px solid var(--line);
+  box-shadow: 0 -12px 40px rgba(60, 40, 20, .12);
+  padding: 22px max(16px, 6vw) 30px;
+  font-size: clamp(16px, 1.55vw, 24px); line-height: 1.85;
+  transform: translateY(105%); transition: transform .35s var(--ease);
+}
+#notes.open { transform: none; }
+#notes .head { font-family: var(--latin); font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+#notes p { margin: 0 0 .7em; }
+
+/* ---------- presenter window ---------- */
+#presenter { display: none; }
+body.presenter #stage, body.presenter #ui, body.presenter #progress, body.presenter #hint, body.presenter #notes { display: none; }
+body.presenter { overflow: auto; }
+body.presenter #presenter {
+  display: grid; grid-template-rows: auto 1fr; min-height: 100vh;
+}
+#presenter header {
+  display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+  padding: 14px 24px; border-bottom: 1px solid var(--line);
+  font-family: var(--latin); color: var(--muted); font-size: 16px;
+}
+#presenter header strong { color: var(--ink); font-size: 22px; font-variant-numeric: tabular-nums; }
+#pv-timer { font-variant-numeric: tabular-nums; cursor: pointer; }
+#presenter .spacer { flex: 1; }
+#presenter button {
+  min-height: 44px; padding: 0 18px; border-radius: 22px; cursor: pointer;
+  border: 1px solid var(--line); background: #FBF7EF; color: var(--ink);
+}
+#presenter .body-grid { display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(220px, 1fr); }
+#pv-notes { padding: 28px 32px; font-size: clamp(18px, 2vw, 28px); line-height: 1.85; }
+#pv-notes p { margin: 0 0 .8em; }
+#pv-side { border-left: 1px solid var(--line); padding: 28px 24px; }
+#pv-side .lbl { font-family: var(--latin); font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+#pv-cur, #pv-next { font-size: 24px; line-height: 1.6; margin-bottom: 30px; }
+#pv-next { color: var(--muted); }
+@media (max-width: 700px) {
+  #presenter .body-grid { grid-template-columns: 1fr; }
+  #pv-side { border-left: 0; border-top: 1px solid var(--line); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .a, .f, .slide, .bg, #cover, #track .fill, #track li i, #notes, #progress { transition-duration: .01ms !important; transition-delay: 0s !important; }
+  .a, .f { transform: none; }
+  .bg { transform: none; }
+  .seg, .poplars .tree, .words span { animation: none !important; transform: none; opacity: 1; filter: none; }
+  .cave img { clip-path: none; transition: none; }
+}
+</style>
+</head>
+<body>
+
+<div id="stage" aria-live="polite">
+  <div class="bg" id="bgA"></div>
+  <div class="bg" id="bgB"></div>
+  <div id="sec" aria-hidden="true"></div>
+
+  <div id="track" aria-hidden="true">
+    <div class="rail"><div class="fill"></div></div>
+    <ol>
+      <li style="--p:0"><i></i><span>ප්‍රාථමික</span></li>
+      <li style="--p:1"><i></i><span>වහල්</span></li>
+      <li style="--p:2"><i></i><span>වැඩවසම්</span></li>
+      <li style="--p:3"><i></i><span>ධනපති</span></li>
+      <li style="--p:4"><i></i><span>සමාජවාදී</span></li>
+      <li style="--p:5"><i></i><span>කොමියුනිස්ට්</span></li>
+    </ol>
+  </div>
+
+  <figure id="cover" aria-hidden="true"><img src="refs/guru-geethaya-cover.webp" alt="" width="1748" height="2480"></figure>
+
+  <!-- ===================== 1. Title ===================== -->
+  <section class="slide" data-bg="1">
+    <div class="col">
+      <p class="kicker a">සමස්ත ලංකා හෙද සංගමය</p>
+      <h1 class="display a">සාහිත්‍යය කියවීමේ කලාව <span class="sub">සහ සංස්කෘතික මිනිසා</span></h1>
+    </div>
+    <aside class="notes"><p>සාහිත්‍යය කියවීමේ කලාව සහ සංස්කෘතික මිනිසා</p></aside>
+  </section>
+
+  <!-- ===================== පිටුව 1 ===================== -->
+  <section class="slide" data-bg="2" data-sec="මිනිසා කවුද?">
+    <div class="col">
+      <h1 class="display a">මිනිසා කවුද?</h1>
+      <p class="lead latin muted f" style="font-size:54px">Homo Sapiens Sapiens</p>
+      <p class="lead f">නූතන මිනිසා, එනම් මේ අපි.</p>
+    </div>
+    <aside class="notes"><p><b>මිනිසා කවුද?</b> / Homo Sapiens Sapiens, නූතන මිනිසා, එනම් මේ අපි. මේ ලෝකයට බිහි වුනේ කවදාද?</p></aside>
+  </section>
+
+  <section class="slide" data-bg="2" data-sec="මිනිසා කවුද?">
+    <div class="col">
+      <p class="kicker a">මානව පරිණාමය</p>
+      <p class="count a">ලක්ෂ <span class="n" data-count="3">3</span></p>
+      <p class="lead a">අදින් වසර ලක්ෂ 3 කට පමණ පෙර මිනිසා බිහි වුනා.</p>
+      <p class="body muted f" style="margin:34px 0 14px">කාලය 3 ක්</p>
+      <div class="ages">
+        <span class="age f">ශිලාමය</span><span class="link f"></span>
+        <span class="age f">ලෝකඩමය</span><span class="link f"></span>
+        <span class="age f">යකඩමය</span>
+      </div>
+    </div>
+    <aside class="notes"><p>ඔව්, අපි දන්නව මානව පරිණාමය අනුව අදින් වසර ලක්ෂ 3 කට පමණ පෙර මිනිසා බිහි වුනා. <i>(කාලය 3 ක් - 1. ශිලාමය, ලෝකඩමය, යකඩමය)</i></p></aside>
+  </section>
+
+  <section class="slide" data-bg="2" data-sec="මිනිසා කවුද?" data-stage="1">
+    <div class="col">
+      <p class="body muted a">අවුරුදු ලක්ෂ 3 කට පෙර මිනිසා කොයි වගේ ද?</p>
+      <h2 class="title a" style="margin-top:18px">ප්‍රාථමික සාමූහික සමාජයක් ලෙස</h2>
+      <div class="f">
+        <p class="body muted" style="margin-bottom:12px">මූලික අවශ්‍යතා</p>
+        <ul class="chips big"><li>ආහාර</li><li>වාසස්ථාන</li><li>වර්ගයා බෝකිරීම</li></ul>
+      </div>
+      <p class="lead accent f">මාතෘ මූලික සමාජයක්.</p>
+    </div>
+    <aside class="notes">
+      <p>අවුරුදු ලක්ෂ 3 කට පෙර මිනිසා කොයි වගේ ද?</p>
+      <p>මුලින්ම මිනිස්සු ගෝත්‍ර ගත විදියට ජීවත්වුනු <b>ප්‍රාථමික සාමූහික සමාජයක් ලෙස</b> ජීවත් වුනා. මූලික අවශ්‍යතා ආහාර, වාසස්ථාන සහ වර්ගයා බෝකිරීම. ආහාර සඳහා සාමූහිකව සතුන් දඩයම් කර බෙදාගෙන කෑවා. වාසස්ථාන සඳහා ගෝත්‍ර ලෙස සාමූහිකව ගල් ගෙවල් වල ජීවත් වුනා. තම පැවැත්ම සඳහා කැමති අයෙකු සමඟ ලිංගිකව එකතු වී වර්ගයා බෝ කලා. මාතෘ මූලික සමාජයක්. දරුවාගේ පියා කවුදැයි දන්නේ නැහැ.</p>
+    </aside>
+  </section>
+
+  <section class="slide" data-bg="2" data-sec="මිනිසා කවුද?" data-stage="1">
+    <div class="col">
+      <p class="kicker a">යම් යම් දේපොල එකතු වුනා</p>
+      <p class="body muted a">දුනු, ඊතල, ගල් ආයුධ, සහ වියලි මස්</p>
+      <ul class="stairs">
+        <li class="a" style="--k:0">දේපොල</li>
+        <li class="f" style="--k:1">නායකයින්</li>
+        <li class="f" style="--k:2">පවුල්</li>
+        <li class="f" style="--k:3">සටන්</li>
+        <li class="f" style="--k:4">වහලුන්</li>
+      </ul>
+    </div>
+    <aside class="notes"><p>ඊළඟට මෙසේ කාලාන්තරයක් ගතවෙද්දී යම් යම් දේපොල එකතු වුනා. දුනු, ඊතල, ගල් ආයුධ, සහ වියලි මස් අතර ආහාර. මේවා රැක ගැනීමට සහ බෙදා ගැනීමට නායකයින් අවශ්‍ය වුනා. ඒකට මුලිකත්වය ගත් සමාජයකට පෙරළුනා. නායකයින්ට දේපොල රැක ගැනීමට පවුල් අවශ්‍ය වුනා. පවුල් ඇති වුනාට පස්සෙ තමාගේ දේපොල වැඩිකර ගැනීමට අවශ්‍ය වුනා. දේපොල වැඩිකර ගැනීම සඳහා වෙනත් ගෝත්‍ර සමඟ සටන් කලා. සටන් වලින් පරදින ගෝත්‍ර වහලුන් ලෙස තබා ගෙන තමන්ගේ වැඩ කරව ගත්තා. මේ විදියට අතිවිශාල වහලුන් පිරිසක් සහ <b>වහල් හිමියන්</b> ලෙස ගෝත්‍ර තරුණ පාලකයන් පිරිසක් බිහිවුනා.</p></aside>
+  </section>
+
+  <!-- ===================== පිටුව 2 ===================== -->
+  <section class="slide" data-bg="2" data-sec="මිනිසා කවුද?" data-stage="2">
+    <div class="col">
+      <h2 class="title a">වහල් සමාජ ක්‍රමය</h2>
+      <div class="tier a"><div class="top">වහල් හිමියන්</div><div class="low">වහලුන්</div></div>
+      <p class="body f" style="margin-bottom:18px">මානව ඉතිහාසයේ අතිදැවැන්ත නිර්මාණ මේ වහලුන් අතින් බිහිවුනා.</p>
+      <ul class="chips f"><li>රෝමය</li><li>ග්‍රීසිය</li></ul>
+    </div>
+    <aside class="notes"><p>මේක <b>වහල් සමාජ ක්‍රමය</b> කියල කියනවා. මානව ඉතිහාසයේ අතිදැවැන්ත නිර්මාණ මේ වහලුන් අතින් බිහිවුනා. රෝමය, ග්‍රීසිය, වහලුන්ගෙන් වැඩ ගැනීම නිසා ඇති වූ දේවල්.</p></aside>
+  </section>
+
+  <section class="slide" data-bg="2" data-sec="මිනිසා කවුද?" data-stage="3">
+    <div class="col">
+      <p class="body muted a">වහලුන් වහල් හිමියන්ට එරෙහිව කැරලි ගැසීම</p>
+      <h2 class="title a" style="margin-top:18px">වැඩවසම් සමාජ ක්‍රමය</h2>
+      <ul class="chips big f"><li>රජවරු</li><li>සිටුවරු</li><li>කුල ක්‍රමය</li></ul>
+    </div>
+    <aside class="notes"><p>කාලාන්තරයකට පසුව වහලුන් වහල් හිමියන්ට එරෙහිව කැරලි ගැසීම නිසා, වහල් හිමියන් පරාජය කර වහලුන් විසින් වැඩවසම් සමාජ ක්‍රමය බිහිකලා. රජවරු සිටුවරු කුල ක්‍රමය ඒ අනුවයි ඇති වුනේ.</p></aside>
+  </section>
+
+  <section class="slide" data-bg="2" data-sec="මිනිසා කවුද?" data-stage="4">
+    <div class="col">
+      <div class="vs a"><span>ඉඩම් හිමියන්</span><span class="sep"></span><span>ප්‍රවේණි දාසයන්</span></div>
+      <p class="lead f">නිදහස් වෙළෙන්දන්</p>
+      <h2 class="title f" style="margin-top:10px">ධනපති ආර්ථික රටාව</h2>
+      <p class="body muted f">දැන් තිබෙන්නේ ධනපති ආර්ථික රටාවයි.</p>
+    </div>
+    <aside class="notes"><p>මේ වැඩ වසම් සමාජ රටාව පසුව අර්බුදයට ගියා. වැඩ වසම් ක්‍රමයේ ඉඩම් හිමියන් සහ ඉඩම් වල වැඩ කල ප්‍රවේණි දාසයන් අතර අරගලය මගින් ඒ අතර සිටි නිදහස් වෙළෙන්දන් විසින් එම සමාජ රටාව පෙරලා දමා ධනපති ආර්ථික රටාව බිහිකලා. දැන් තිබෙන්නේ ධනපති ආර්ථික රටාවයි.</p></aside>
+  </section>
+
+  <section class="slide" data-bg="2" data-sec="මිනිසා කවුද?" data-stage="4">
+    <div class="col">
+      <h2 class="title md a">නමුත් දැන් ධනපති ආර්ථික රටාවත් අර්බුදයට ගිහින් තියෙන්නේ.</h2>
+      <ul class="list">
+        <li class="f">පොදු ජනතාවගේ අයිතීන් අහිමි වීම</li>
+        <li class="f">ධනපතියන් විසින් නිර්ධනයින් සූරාකෑම සහ පීඩාවට පත්කිරීම</li>
+      </ul>
+    </div>
+    <aside class="notes"><p>නමුත් දැන් ධනපති ආර්ථික රටාවත් අර්බුදයට ගිහින් තියෙන්නේ. පොදු ජනතාවගේ අයිතීන් අහිමි වීම, ධනපතියන් විසින් නිර්ධනයින් සූරාකෑම සහ පීඩාවට පත්කිරීම සිදුවෙනවා.</p></aside>
+  </section>
+
+  <section class="slide" data-bg="2" data-sec="මිනිසා කවුද?" data-stage="5">
+    <div class="col">
+      <h2 class="title a">සමාජවාදී ආර්ථික ක්‍රම</h2>
+      <p class="lead muted f">එය සමාජ සංවර්ධන ක්‍රියාවලියේ ඉදිරි පියවරක්.</p>
+    </div>
+    <aside class="notes"><p>මේ අතරතුර සමහර රටවල් ධනපති ක්‍රමය පෙරලා දමා සමාජවාදී ආර්ථික ක්‍රම කරා යමින් සිටිනවා, එය සමාජ සංවර්ධන ක්‍රියාවලියේ ඉදිරි පියවරක්.</p></aside>
+  </section>
+
+  <section class="slide" data-bg="2" data-sec="මිනිසා කවුද?" data-stage="6">
+    <div class="col">
+      <p class="lead muted a">ලෝකයේ සියලු ප්‍රශ්න විසඳී මිනිසාට සාමකාමීව සිටීමට නම්</p>
+      <h2 class="title accent f" style="margin-top:16px">කොමියුනිස්ට් ක්‍රමය</h2>
+    </div>
+    <aside class="notes"><p>ලෝකයේ සියලු ප්‍රශ්න විසඳී මිනිසාට සාමකාමීව සිටීමට නම් ඊළඟ ආර්ථික රටාව වන කොමියුනිස්ට් ක්‍රමයට යා යුතුයි.</p></aside>
+  </section>
+
+  <!-- ===================== පිටුව 3 ===================== -->
+  <section class="slide" data-bg="5" data-sec="සංස්කෘතික මිනිසා">
+    <div class="col">
+      <h1 class="display a">සංස්කෘතික මිනිසා</h1>
+      <p class="lead muted f">මුලින්ම සංස්කෘතිය කියන්නේ මොකක්ද කියල තේරුම් ගනිමු.</p>
+    </div>
+    <aside class="notes"><p>අපි දැන් බලමු සංස්කෘතික මිනිසා කියන්නෙ කව්ද කියල. මුලින්ම සංස්කෘතිය කියන්නේ මොකක්ද කියල තේරුම් ගනිමු.</p></aside>
+  </section>
+
+  <section class="slide" data-bg="5" data-sec="සංස්කෘතික මිනිසා">
+    <div class="col">
+      <h2 class="title a">සංස්කෘතිය</h2>
+      <ul class="chips big">
+        <li class="a">ඇඳුම් පැළඳුම්</li><li class="a">ආහාරපාන</li><li class="a">ගෙවල් දොරවල්</li><li class="a">ආගමික ස්ථාන</li>
+      </ul>
+      <p class="lead accent f">ඔව් ඇත්තටම ඒ සියල්ල සංස්කෘතියට අයිතියි.</p>
+    </div>
+    <aside class="notes"><p><b>සංස්කෘතිය</b> - මිනිසා විසින් කියන්නේ, ඇඳුම් පැළඳුම්, ආහාරපාන, ගෙවල් දොරවල්, ආගමික ස්ථාන ආදී මේවා ද? ඔව් ඇත්තටම ඒ සියල්ල සංස්කෘතියට අයිතියි.</p></aside>
+  </section>
+
+  <section class="slide" data-bg="5" data-sec="සංස්කෘතික මිනිසා">
+    <div class="col">
+      <p class="kicker a">අපි නිර්වචනය බලමු</p>
+      <span class="qmark a" aria-hidden="true">“</span>
+      <p class="quote a">මිනිසා විසින් නිර්මාණය කරන ලද සියලු දේ සංස්කෘතිය වන්නේය.</p>
+      <p class="body muted f">මිනිසුන් විසින් සාදන ලද සියලු දේවල්, සිතුවිලි, නිර්මාණ, කලාකෘති ආදී මේ කී නොකී සියලු දේ.</p>
+    </div>
+    <aside class="notes"><p>අපි නිර්වචනය බලමු:</p><p>"මිනිසා විසින් නිර්මාණය කරන ලද සියලු දේ සංස්කෘතිය වන්නේය. මිනිසුන් විසින් සාදන ලද සියලු දේවල්, සිතුවිලි, නිර්මාණ, කලාකෘති ආදී මේ කී නොකී සියලු දේ."</p></aside>
+  </section>
+
+  <section class="slide" data-bg="5" data-sec="සංස්කෘතික මිනිසා">
+    <div class="col">
+      <p class="kicker a">සංස්කෘතික මිනිසා</p>
+      <h2 class="title a">ලෝකය නිර්මාණය කරනු ලබන මිනිසා.</h2>
+      <p class="lead f">මිනිසා කරනු ලබන දේවල් ලෝකයට යහපතක් විය යුතුය.</p>
+      <p class="body muted f">සමාජය සංවර්ධනය නැත්නම් දියුණු කිරීමේ දිශාවට</p>
+    </div>
+    <aside class="notes"><p>එතකොට සංස්කෘතික මිනිසා කියන්නේ මේ ලෝකයට සියලු දේවල් කරනු ලබන මිනිසා. ලෝකය නිර්මාණය කරනු ලබන මිනිසා. මිනිසා කරනු ලබන දේවල් ලෝකයට යහපතක් විය යුතුය. එයින් අදහස් කරනුයේ මිනිසා නිර්මාණ නැත්නම් වැඩ කල යුත්තේ ලෝකයට යහපත පිණිසයි. එයින් අදහස් කරන්නේ සංස්කෘතික මිනිසෙක් අතින් එනම් මිනිසා සමාජය සංවර්ධනය නැත්නම් දියුණු කිරීමේ දිශාවට වැඩ කල යුතුය.</p></aside>
+  </section>
+
+  <section class="slide" data-bg="5" data-sec="සංස්කෘතික මිනිසා">
+    <div class="col">
+      <p class="kicker a">සමස්ත ලංකා හෙද සංගමය</p>
+      <ul class="chips big">
+        <li class="a hl">කලාව</li><li class="a">විද්‍යාව</li><li class="a">දර්ශනය</li>
+      </ul>
+      <p class="lead f">සමාජය යහපත් දිශාවට ගමන් කරවීමට දායක වීම</p>
+    </div>
+    <aside class="notes"><p>ඒ අරමුණින් තමයි අපි සමස්ත ලංකා හෙද සංගමය විදියට මෙවැනි වැඩසටහන් සංවිධානය කරනු ලබන්නේ. විශේෂයෙන් කලාව, විද්‍යාව, දර්ශනය වැනි ආශ්‍රිත වැඩසටහන් කරන්නේ. අද අපි තෝරාගත්තේ කලාවේ අති විශිෂ්ට කෘතියක් ආශ්‍රයෙන් යම්කිසි රසාස්වාදයක් ලබා ගැනීම, ඒ තුළින් සමාජය යහපත් දිශාවට ගමන් කරවීමට දායක වීම යන කරුණු සඳහායි.</p></aside>
+  </section>
+
+  <!-- ===================== පිටුව 4 ===================== -->
+  <section class="slide" data-bg="5" data-sec="කලාව">
+    <div class="col">
+      <h1 class="huge a">කලාව</h1>
+      <p class="lead muted f">මේ කලාව කියන වචනය විවිධ දාර්ශනිකයන් අර්ථකථනය කරල තියෙනවා</p>
+    </div>
+    <aside class="notes"><p>මම තවත් වචනයක තේරුම ගෙනහැර දක්වන්න උත්සාහ කරනවා. ඒ තමයි <b>"කලාව"</b> කියන වචනය.</p><p>මේ කලාව කියන වචනය විවිධ දාර්ශනිකයන් අර්ථකථනය කරල තියෙනවා:</p></aside>
+  </section>
+
+  <section class="slide" data-bg="5" data-sec="කලාව">
+    <div class="col">
+      <div class="who a">
+        <figure class="portrait" style="margin:0"><img src="refs/aristotle.jpg" alt="Marble bust of Aristotle, Palazzo Altemps, Rome" width="960" height="1285"></figure>
+        <div><h3>ඇරිස්ටෝටල්</h3><p class="credit">Bust, Palazzo Altemps · Public domain</p></div>
+      </div>
+      <p class="quote a">“කලාව ස්වභාවධර්මයේ අනුකරණයකි.”</p>
+    </div>
+    <aside class="notes"><p>බලන්න <b>ඇරිස්ටෝටල්</b> මෙහෙම කියනවා:</p><p>"කලාව ස්වභාවධර්මයේ අනුකරණයකි." (ලස්සනයි නේද?)</p></aside>
+  </section>
+
+  <section class="slide" data-bg="5" data-sec="කලාව">
+    <div class="col">
+      <div class="who a">
+        <figure class="portrait" style="margin:0"><img src="refs/tolstoy.jpg" alt="Leo Tolstoy, colour photograph by Prokudin-Gorsky, 1908" width="960" height="1329"></figure>
+        <div><h3>ලියෝ ටොල්ස්ටෝයි</h3><p class="credit">S. Prokudin-Gorsky, 1908 · Public domain</p></div>
+      </div>
+      <p class="quote sm a">“කලාව කියන්නෙ, කලාකරුවා තමා ලැබූ අත්දැකීම් අනුන්ගේ සිතට ද ඒ හා සමාන දෝංකාර දීමට සැලැස්වීම කලාවයි”</p>
+    </div>
+    <aside class="notes"><p><b>ටොල්ස්ටෝයි</b> - ලියෝ ටොල්ස්ටෝයි කියනවා:</p><p>"කලාව කියන්නෙ, කලාකරුවා තමා ලැබූ අත්දැකීම් අනුන්ගේ සිතට ද ඒ හා සමාන දෝංකාර දීමට සැලැස්වීම කලාවයි" කියල.</p></aside>
+  </section>
+
+  <section class="slide" data-bg="5" data-sec="කලාව">
+    <div class="col">
+      <div class="who a">
+        <div class="portrait mark" aria-hidden="true"><span>“</span></div>
+        <div><h3>මාක්ස්වාදීන්</h3></div>
+      </div>
+      <p class="quote a">“ප්‍රකෘතිය මිනිස් මනස තුල ප්‍රතිනිර්මාණය කිරීම කලාවයි”</p>
+    </div>
+    <aside class="notes"><p><b>මාක්ස්වාදීන්</b> මෙහෙම කියනවා:</p><p>"ප්‍රකෘතිය මිනිස් මනස තුල ප්‍රතිනිර්මාණය කිරීම කලාවයි" කියල.</p></aside>
+  </section>
+
+  <section class="slide" data-bg="5" data-sec="කලාව">
+    <div class="col">
+      <h2 class="title md a">කලාව ලොව පහල වූයේ කවදා ද?</h2>
+      <div class="f">
+        <figure class="cave" style="margin-left:0"><img src="refs/lascaux.jpg" alt="Prehistoric cave painting of animals, Lascaux, France" width="720" height="472"></figure>
+        <p class="lead" style="margin-bottom:6px">ඇත්තටම කලාව බිහිවුනේ මිනිසා බිහිවූ දා සිටයි.</p>
+        <p class="credit">Cave painting, Lascaux, France · c. 17,000 years old · Public domain</p>
+      </div>
+    </div>
+    <aside class="notes"><p>එතකොට කලාව ලොව පහල වූයේ කවදා ද? මොකද හිතෙන්නෙ? ......</p><p>ඇත්තටම කලාව බිහිවුනේ මිනිසා බිහිවූ දා සිටයි. දැනට සොයාගෙන ඇති පැරණිතම ගුහා චිත්‍රය ඉන්දුනීසියාවේ සුලවේසි දූපතේ ඇති අතර, එය අවම වශයෙන් අවුරුදු 51,200 ක් පැරණියි.</p></aside>
+  </section>
+
+  <section class="slide" data-bg="5" data-sec="සාහිත්‍යය">
+    <div class="col">
+      <div class="eq">
+        <div class="row a" style="font-size:80px">සාහිත්‍යය</div>
+        <div class="arrow f"></div>
+        <div class="row f">සහිත බව</div>
+        <div class="row muted f" style="font-size:40px">යමක් ඇති බව</div>
+        <div class="arrow f"></div>
+        <div class="row final f">මානව අත්දැකීම්</div>
+      </div>
+    </div>
+    <aside class="notes"><p><b>එතකොට සාහිත්‍යය</b> කියන්නෙ මොනවද? <b>සරලව කිව්වොත් සහිත බව</b>. ඒ කියන්නෙ යමක් ඇති බව. එතකොට මේ සහිත බව ඇතිවෙන්නෙ මොනවයින්ද? ඒවා තමයි <b>මානව අත්දැකීම්</b>. පොදුවේ මහත් ලෝකයේ මානව අත්දැකීම් තමයි සාහිත්‍යය තුල තියෙන්නෙ.</p></aside>
+  </section>
+
+  <!-- ===================== පිටුව 5 ===================== -->
+  <section class="slide" data-bg="4" data-sec="කියවීම">
+    <div class="col">
+      <h2 class="title a">කියවීම</h2>
+      <ul class="list">
+        <li class="f">කියවීම පුරුද්දක් කර ගත යුතුයි.</li>
+        <li class="f">පොත් එකතු කරන කෙනෙක් නොව කියවන කෙනෙක් විය යුතුයි.</li>
+        <li class="f">පොත් කියවන කෙනෙකු වෙනුවට අධ්‍යයනය කරන කෙනෙක් විය යුතුයි.</li>
+        <li class="f">කුඩා හෝ පොත් රාක්කයක් තබා ගත යුතුයි.</li>
+      </ul>
+    </div>
+    <aside class="notes">
+      <p>කියවීම කියන්නෙ කථා කිරීම නොවෙයි. ඇත්ත වශයෙන්ම පොත් කියවීමයි. කියවීම පුරුදු විය යුතුයි. ඒ කියන්නෙ කියවීම පුරුද්දක් කර ගත යුතුයි.</p>
+      <p>පොත් එකතු කරන කෙනෙක් නොව කියවන කෙනෙක් විය යුතුයි. සමහර අය ආසාවට පොත් ගත්තට කියවන්න කම්මැලියි. එය මුලින් කීවා වගේ පුරුදු විය යුතුයි.</p>
+      <p>ඊළඟ රහස තමයි පොත් කියවන කෙනෙකු වෙනුවට අධ්‍යයනය කරන කෙනෙක් විය යුතුයි.</p>
+      <p>පොත් කියවන කෙනෙකු වීමට නම් කුඩා හෝ පොත් රාක්කයක් තබා ගත යුතුයි.</p>
+    </aside>
+  </section>
+
+  <section class="slide" data-bg="4" data-sec="කියවීම">
+    <div class="col">
+      <p class="kicker a">ප්‍රධාන පොත් වර්ග 3 ක් තියෙනවා</p>
+      <div class="types">
+        <div class="t f"><span>01</span><div><h3>ප්‍රබන්ධ <span class="latin">Fiction</span></h3><p>ගොතන ලද.</p></div></div>
+        <div class="t f"><span>02</span><div><h3>ප්‍රබන්ධ නොවන <span class="latin">Non-fiction</span></h3><p>තොරතුරු, චරිතාපදාන.</p></div></div>
+        <div class="t f"><span>03</span><div><h3>ශාස්ත්‍රීය පොත් <span class="latin">Academic books</span></h3><p>විවිධ විෂයන් සඳහා ලියන පොත්</p></div></div>
+      </div>
+    </div>
+    <aside class="notes"><p>ප්‍රධාන පොත් වර්ග 3 ක් තියෙනවා:</p><p>1. <b>ප්‍රබන්ධ (Fiction)</b> - ගොතන ලද.<br>2. <b>ප්‍රබන්ධ නොවන (Non-fiction)</b> - තොරතුරු, චරිතාපදාන.<br>3. <b>ශාස්ත්‍රීය පොත් (Academic books)</b> - (විවිධ විෂයන් සඳහා ලියන පොත්).</p></aside>
+  </section>
+
+  <section class="slide" data-bg="4" data-sec="කියවීම පුරුද්දක් කරගන්නේ කෙසේද?">
+    <div class="col">
+      <span class="num a">01</span>
+      <h2 class="title md a">දිනකට තමන්ට කියවිය හැකි අවම පිටු ගණනක් තෝරා ගැනීම.</h2>
+      <div class="pages"><span class="f">පිටු</span><b class="f">8</b><b class="f">10</b><b class="f">20</b><b class="f">50</b></div>
+    </div>
+    <aside class="notes"><p>අපි බලමු කොහොමද කියවීම පුරුද්දක් කර ගන්නෙ කියල:</p><p>1. <b>දිනකට තමන්ට කියවිය හැකි අවම පිටු ගණනක් තෝරා ගැනීම.</b> සමහර විට පිටු 8, 10, 20, 50 ආදී වශයෙන් තමාට හැකි ප්‍රමාණය.</p></aside>
+  </section>
+
+  <section class="slide" data-bg="4" data-sec="කියවීම පුරුද්දක් කරගන්නේ කෙසේද?">
+    <div class="col">
+      <span class="num a">02</span>
+      <h2 class="title md a">වර්ග 2 කින් පොත් 2 ක් එකවර කියවීම.</h2>
+      <div class="bars a" aria-hidden="true">
+        <div class="bar"><span>නවකථාවක්</span><div class="track">
+          <i class="seg" style="--d:.6s"></i><i class="seg" style="--d:1.8s"></i><i class="seg" style="--d:3s"></i><i class="seg" style="--d:4.2s"></i><i class="seg" style="--d:5.4s"></i>
+        </div></div>
+        <div class="bar"><span>චරිතාපදානයක්</span><div class="track">
+          <i class="seg" style="--d:1.2s"></i><i class="seg" style="--d:2.4s"></i><i class="seg" style="--d:3.6s"></i><i class="seg" style="--d:4.8s"></i><i class="seg" style="--d:6s"></i>
+        </div></div>
+      </div>
+      <p class="lead f">එවිට පොත් දෙකම සමාන්තරව කියවා අවසන් කල හැකියි.</p>
+    </div>
+    <aside class="notes"><p>2. <b>වර්ග 2 කින් පොත් 2 ක් එකවර කියවීම.</b> ඒ කියන්නෙ, නවකථාවක් / කෙටි කථාවක්, එහෙම නැත්නම් චරිතාපදානයක්, විෂය පොතක් / ප්‍රබන්ධයක් ආදී ලෙසට තෝරාගෙන එකකින් පිටු කීපයක් කියවා තබා, ඒ සමඟම අනෙක් පොතෙන් පිටු කීපයක් කියවීම. එවිට පොත් දෙකම සමාන්තරව කියවා අවසන් කල හැකියි.</p></aside>
+  </section>
+
+  <!-- ===================== පිටුව 6 ===================== -->
+  <section class="slide" data-bg="4" data-sec="කියවීම පුරුද්දක් කරගන්නේ කෙසේද?">
+    <div class="col">
+      <span class="num a">03</span>
+      <h2 class="title md a">මම කියවන කෙනෙක් ලෙස පුද්ගල පෞරුෂයක් සාදා ගැනීම.</h2>
+      <ul class="list sm">
+        <li class="f">පොතක් නිතර ලඟ තබා ගැනීම.</li>
+        <li class="f">පොත් 10 කට එක් Book Mark එකක් ගෙන එහි නම් සඳහන් කිරීම සහ ඒ Book Mark මේසය උඩ එකතු කිරීම.</li>
+        <li class="f">විශේෂිත Book Mark එකක් සාදා ගැනීම සහ එය දමන පොත අනිවාර්යයෙන් ඉවර කිරීම.</li>
+        <li class="f">කියවන ලද පොත් රාක්කයේ වෙනම තැබීම.</li>
+      </ul>
+    </div>
+    <aside class="notes"><p>3. <b>මම කියවන කෙනෙක් ලෙස පුද්ගල පෞරුෂයක් සාදා ගැනීම.</b> මේකට කරන්න පුළුවන් දේවල් තමයි:</p><p>• පොතක් නිතර ලඟ තබා ගැනීම.<br>• පොත් 10 කට එක් Book Mark එකක් ගෙන එහි නම් සඳහන් කිරීම සහ ඒ Book Mark මේසය උඩ එකතු කිරීම.<br>• විශේෂිත Book Mark එකක් සාදා ගැනීම සහ එය දමන පොත අනිවාර්යයෙන් ඉවර කිරීම.<br>• කියවන ලද පොත් රාක්කයේ වෙනම තැබීම.</p></aside>
+  </section>
+
+  <section class="slide" data-bg="4" data-sec="කියවීම පුරුද්දක් කරගන්නේ කෙසේද?">
+    <div class="col">
+      <span class="num a">04</span>
+      <h2 class="title md a">පොත් කියවීමට නිවසේ වෙනම තැනක් සාදා ගැනීම.</h2>
+      <ul class="list sm">
+        <li class="f">අනෙක් අයගෙන් බාධා නොවන තැනක් තෝරා ගැනීම.</li>
+        <li class="f">සුව පහසු ආසනයක් තබා ගැනීම: ඇඳක්, පුටුවක්.</li>
+        <li class="f">ආලෝකය පැත්තකින් වැටෙන තැනක්, කහ එළිය ඇති බල්බ් මේ සඳහා ඉතාම හොඳයි.</li>
+      </ul>
+    </div>
+    <aside class="notes"><p>4. <b>පොත් කියවීමට නිවසේ වෙනම තැනක් සාදා ගැනීම.</b></p><p>• අනෙක් අයගෙන් බාධා නොවන තැනක් තෝරා ගැනීම.<br>• සුව පහසු ආසනයක් තබා ගැනීම: ඇඳක්, පුටුවක්.<br>• ආලෝකය පැත්තකින් වැටෙන තැනක්, කහ එළිය ඇති බල්බ් මේ සඳහා ඉතාම හොඳයි.</p></aside>
+  </section>
+
+  <!-- ===================== පිටුව 7 ===================== -->
+  <section class="slide" data-bg="6" data-cover data-sec="ගුරු ගීතය">
+    <div class="col">
+      <h1 class="display a">ගුරු ගීතය</h1>
+      <p class="lead muted a">මේක ඉතාම ලස්සන පුංචි කථාවක්.</p>
+    </div>
+    <aside class="notes"><p>දැන් අපි බලමු ගුරු ගීතය නවකථාව. මේක ඉතාම ලස්සන පුංචි කථාවක්. මං කථාව කියන්නම් ඔන්න අහගන්න.</p></aside>
+  </section>
+
+  <section class="slide" data-bg="6" data-cover data-sec="ගුරු ගීතය">
+    <div class="col">
+      <p class="kicker a">සෝවියට් දේශයේ කිර්ගීසියා</p>
+      <h2 class="title a">ඉතා කුඩා ගමක්</h2>
+      <ul class="list">
+        <li class="f">ඒ ගම ඉතාම නොදියුණුයි.</li>
+        <li class="f">ගමේ අය ඉගෙන ගෙන නැහැ.</li>
+        <li class="f">ඉතාම ප්‍රාථමික ජීවිත ගතකලේ හරිම දුප්පත් කමින්.</li>
+      </ul>
+    </div>
+    <aside class="notes"><p>ඉස්සර සෝවියට් දේශයේ කිර්ගීසියා කියල ප්‍රදේශයක් තිබුනා. ඒ ප්‍රදේශයේ ඉතා කුඩා ගමක් තිබුනා. ඒ ගම ඉතාම නොදියුණුයි. ගමේ අය ඉගෙන ගෙන නැහැ. ඉතාම ප්‍රාථමික ජීවිත ගතකලේ හරිම දුප්පත් කමින්.</p></aside>
+  </section>
+
+  <section class="slide" data-bg="3" data-sec="ගුරු ගීතය">
+    <div class="col">
+      <p class="kicker a">මේ ගමට එනවා</p>
+      <h2 class="title a">තරුණ ගුරුවරයෙක්</h2>
+      <p class="lead a">පාසැලක් පටන් ගෙන ගමේ ලමයින්ට අකුරු උගන්වන්න.</p>
+      <p class="body muted f" style="margin:26px 0 22px; padding-left:28px; border-left:2px solid var(--accent-soft)">“අපේ ලමයින්ගෙ වැඩ වලට බාධා නොකර ගමෙන් පිටවෙන්න.”</p>
+      <p class="body f">නමුත් ගුරුවරයා රජයේ නියමය අනුව තමන්ට පැවරුන කාර්යය ආරම්භ කරන්න පටන් ගන්නවා.</p>
+    </div>
+    <aside class="notes"><p>මේ ගමට එනවා තරුණ ගුරුවරයෙක් පාසැලක් පටන් ගෙන ගමේ ලමයින්ට අකුරු උගන්වන්න. එයා පැහැදිලි කරනවා ලමයින්ට ඉගැන්වීමේ වැදගත්කම ගැන ගමේ අයට. ගමේ මිනිස්සු හිනා වෙනව විතරක් නෙවෙයි ඒ තරුණ ගුරුවරයාට සමච්චල් කරනවා. ඒ ගොල්ලො කියනවා "අපේ ලමයින්ගෙ වැඩ වලට බාධා නොකර ගමෙන් පිටවෙන්න. ලමයින්ට ගොම අහුලන්න, තණකොල කපන්න, ගොවිතැන් වලට උදව් වෙන්න තියෙනව කියල". ඒ ගුරුවරයා වැඩිහිටියන්ට පැහැදිලි කරනවා රජයෙන් ලමයින්ට උගන්වන්න තීරණය කරල තියෙනව කියල. නමුත් මිනිස්සු ඒක පිළිගන්නෙ නෑ. අපට අපේ පාඩුවෙ ඉන්න දීල යන්න කියනව. නමුත් ගුරුවරයා රජයේ නියමය අනුව තමන්ට පැවරුන කාර්යය ආරම්භ කරන්න පටන් ගන්නවා.</p></aside>
+  </section>
+
+  <!-- ===================== පිටුව 8 ===================== -->
+  <section class="slide" data-bg="3" data-sec="ගුරු ගීතය">
+    <div class="col">
+      <p class="title from a">අශ්ව ගාලක්</p>
+      <h2 class="title accent f">පාසැල් ගොඩනැගිල්ල</h2>
+      <p class="lead muted f">ගමේ කිසි කෙනෙක් ඒකට උදව් කරන්නෙ නෑ.</p>
+      <p class="lead f">ඒත් තනියම ඔහු ඒක කරනවා.</p>
+    </div>
+    <aside class="notes"><p>ගමේ කඳු ගැටයක් උඩ අතහැර දමා තියෙන අශ්ව ගාලක් සුද්ධ කරල පිදුරු හෙවිල්ලලා, පාසැල් ගොඩනැගිල්ල විදියට හදා ගන්නවා. ගමේ කිසි කෙනෙක් ඒකට උදව් කරන්නෙ නෑ. ඒත් තනියම ඔහු ඒක කරනවා. ඊට පස්සෙ ලමයි පාසැලට එක්කගෙන එන්න උදේම ගෙවල් ගානෙ යනවා. සමහර ගෙවල් වලින් ඔහුට බැන වදිනවා. ඒත් එයා ඒවා ගණන් නොගෙන කොහොමහරි ලමයි ටිකක් එකතු කරගෙන පාසැල පටන් ගන්නවා.</p></aside>
+  </section>
+
+  <section class="slide" data-bg="3" data-sec="ගුරු ගීතය">
+    <div class="col">
+      <h1 class="display accent a">අල්තිනායි</h1>
+      <ul class="list">
+        <li class="f">මේ ලමයගෙ දෙමව්පියන් නැහැ.</li>
+        <li class="f">නැන්දා මාමා ලඟ තමයි ඉන්නෙ.</li>
+        <li class="f">ඉස්කෝලෙ යන්න දෙන්නෙත් නැහැ.</li>
+      </ul>
+    </div>
+    <aside class="notes"><p>මෙහෙම අමාරුවෙන් විවිධ වයස් වල ලමයින්ට හෝඩියෙ අකුරු උගන්වනවා. ඊට අමතරව විවිධ ක්‍රියාකාරකම් කථා කියල දෙනවා. මේ අතර ටිකක් තරුණ ගෑණු ලමයෙක් වන <b>අල්තිනායි</b> මේ ගුරුවරයාට අතිශයින් සමීප වෙනවා. ඒකට හේතුව මේ ලමයගෙ දෙමව්පියන් නැහැ. නැන්දා මාමා ලඟ තමයි ඉන්නෙ. ඒ අය මේ ලමයගෙන් වැඩ ගන්නවා. ඉස්කෝලෙ යන්න දෙන්නෙත් නැහැ. ඉස්කෝලෙ යන එක වලක්වන්න උත්සාහ කරනවා. ඊට අමතරව මේ ලමයා කුඩා කාලයේම මුදලට විවාහ කරල දෙන්න හදනවා.</p></aside>
+  </section>
+
+  <section class="slide" data-bg="3" data-sec="ගුරු ගීතය">
+    <div class="col">
+      <h2 class="title md a">මේ ලමයා ඉගෙන ගන්න දක්ෂ බව ගුරුවරයාට වැටහෙනවා.</h2>
+      <p class="lead accent f">නගරයේ පාසැලකට යවන්න සූදානම් වෙනවා.</p>
+    </div>
+    <aside class="notes"><p>ගුරුවරයාත් මේකට මැදිහත් වෙමින් ගෑණු ලමයට උගන්වන්න උත්සාහ කරනවා. මේ ලමයා ඉගෙන ගන්න දක්ෂ බව ගුරුවරයාට වැටහෙනවා. මේ නිසා ගුරුවරයා මේ ලමයා නගරයේ පාසැලකට යවන්න සූදානම් වෙනවා.</p></aside>
+  </section>
+
+  <!-- ===================== පිටුව 9 ===================== -->
+  <section class="slide" data-bg="3" data-sec="ගුරු ගීතය">
+    <div class="col">
+      <p class="kicker a">නමුත් ඊට පෙර</p>
+      <p class="lead muted a">මේ ලමයව වෙළෙන්දෙකුට විකුණනවා.</p>
+      <h2 class="title md f" style="margin-top:26px">පහර කෑ ගුරුවරයා තුවාල ලබනවා.</h2>
+      <p class="lead accent f">ලමයා බේරාගෙන</p>
+    </div>
+    <aside class="notes"><p>නමුත් ඊට පෙර අර නැන්දා මාමා එකතු වෙලා මේ ලමයව වෙළෙන්දෙකුට විකුණනවා. ඒ මනුස්සයා ඉස්කෝලෙට ඇවිල්ලා ගුරුවරයාට ගහල ගෑණු ලමයා අරගෙන යනවා. ගෙනිහින් දූෂණය කරනවා.</p><p>පහර කෑ ගුරුවරයා තුවාල ලබනවා. ඒත් ඔහු රජයට පැමිණිලි කරල පොලිස් භටයන් ගෙන්වාගෙන අර වෙළෙන්දා අල්ලා හිරේ දාල ලමයා බේරාගෙන ලමයාට සියල්ල අමතක කරන්න කියල ගලායන ඇලෙන් නාවනවා.</p></aside>
+  </section>
+
+  <section class="slide" data-bg="3" data-sec="ගුරු ගීතය">
+    <div class="col">
+      <svg class="poplars a" viewBox="0 0 220 230" aria-hidden="true">
+        <g class="tree">
+          <rect x="62" y="150" width="5" height="80" fill="#6B5644"/>
+          <path d="M64 6 C 88 50, 92 120, 64 196 C 36 120, 40 50, 64 6 Z" fill="var(--leaf)" opacity=".75"/>
+          <path d="M64 30 C 80 70, 82 120, 64 180 C 48 120, 50 70, 64 30 Z" fill="#56653A" opacity=".5"/>
+        </g>
+        <g class="tree">
+          <rect x="140" y="160" width="5" height="70" fill="#6B5644"/>
+          <path d="M142 40 C 162 80, 166 140, 142 204 C 118 140, 122 80, 142 40 Z" fill="var(--leaf)" opacity=".7"/>
+          <path d="M142 62 C 156 96, 158 140, 142 190 C 128 140, 130 96, 142 62 Z" fill="#56653A" opacity=".5"/>
+        </g>
+      </svg>
+      <p class="kicker a">කුඩා පොප්ලර් පැල 2 ක්</p>
+      <p class="quote a">“මේ ගස් දෙක වැඩෙනවා වගේ අපි ඉදිරියට වැඩෙමු”</p>
+    </div>
+    <aside class="notes"><p>ඊට පස්සෙ ලමයාට තියෙන ආදරය නිසා එය මැඩගෙන දෙදෙනාම සිහිවටනයක් ලෙස කුඩා පොප්ලර් පැල 2 ක් පාසැල ආසන්න කඳු ගැටයේ සිටුවනවා. ඒ සිටුවන ගමන් කියනව "මේ ගස් දෙක වැඩෙනවා වගේ අපි ඉදිරියට වැඩෙමු" කියල. ලමයා සනසවලා නගරයේ පාසැලට ඇරලවනවා.</p></aside>
+  </section>
+
+  <section class="slide" data-bg="1" data-sec="ගුරු ගීතය">
+    <div class="col">
+      <ul class="stairs">
+        <li class="a" style="--k:0">මොස්කව් නගරයේ පාසැලෙන්</li>
+        <li class="f" style="--k:1">විශ්ව විද්‍යාලයට</li>
+        <li class="f" style="--k:2">දර්ශන මහාචාර්යවරියක්</li>
+      </ul>
+      <p class="body muted f" style="margin-top:40px">පාසැලේ අළුත් ගොඩනැගිල්ලක් විවෘත කරනවා.</p>
+    </div>
+    <aside class="notes"><p>ඇය දක්ෂ ලෙස මොස්කව් නගරයේ පාසැලෙන් ඉගෙන ගෙන විශ්ව විද්‍යාලයට ගිහින් දර්ශන මහාචාර්යවරියක් වෙනවා. ඒ මහාචාර්යවරිය පසු කාලෙක තමන්ගෙ පුංචි ගමට එනව ඇවිල්ල ඒ ගමේ තිබුන පාසැලේ අළුත් ගොඩනැගිල්ලක් විවෘත කරනවා.</p></aside>
+  </section>
+
+  <section class="slide" data-bg="1" data-sec="ගුරු ගීතය">
+    <div class="col">
+      <p class="kicker a">තමන්ගේ මුල් ගුරුවරයා</p>
+      <h1 class="display accent a">දුයිෂෙන්</h1>
+      <p class="lead f">අර කඳු ගැටයේ සිටවූ පොප්ලර් ගස් දෙක විශාලව වැඩී තියෙනවා.</p>
+      <p class="body muted f">එවිට ඇයට අතීතය සිහිවෙනවා.</p>
+    </div>
+    <aside class="notes"><p>එවිට ඇයට මතක් වෙනවා තමාගේ පැරණි පාසැල සහ තමන්ගේ මුල් ගුරුවරයා වන <b>දුයිෂෙන්</b>. නමුත් ගතවී ගිය කාලය අනුව පැරණි පාසැල තිබූ තැනවත් සොයාගත නොහැකියි. නමුත් අර කඳු ගැටයේ සිටවූ පොප්ලර් ගස් දෙක විශාලව වැඩී තියෙනවා. එවිට ඇයට අතීතය සිහිවෙනවා.</p></aside>
+  </section>
+
+  <!-- ===================== පිටුව 10 ===================== -->
+  <section class="slide" data-bg="3" data-sec="ගුරු ගීතය">
+    <div class="col">
+      <p class="kicker a">ගමේ වයසක මනුස්සයෙක් කියනවා</p>
+      <p class="quote a">“ආ දැන් ඔය ලියුම් බෙදලා ගියේ ඔය දුයිෂෙන් තමයි”</p>
+      <p class="lead muted f">ඇයට විශාල ශෝකයක් දැනෙනවා.</p>
+    </div>
+    <aside class="notes"><p>ඇය දුයිෂෙන් ගුරුවරයා ගැන ගමේ අයගෙන් අහනවා. වැඩිදෙනෙක් ඒ ගැන දන්නෙ නෑ. ඒත් ගමේ වයසක මනුස්සයෙක් කියනවා "ආ දැන් ඔය ලියුම් බෙදලා ගියේ ඔය දුයිෂෙන් තමයි" කියල. ඇයට විශාල ශෝකයක් දැනෙනවා.</p></aside>
+  </section>
+
+  <section class="slide" data-bg="1" data-sec="ගුරු ගීතය">
+    <div class="col">
+      <p class="lead muted a">ඇයගේ ගමේ හිතවතෙකුට මේ කථාව ලිපියකින් දන්වනවා.</p>
+      <h2 class="title a" style="margin-top:16px">ඒ කථාව තමයි මේ ගුරු ගීතය.</h2>
+      <p class="lead accent f">මෙය කියවෙන්නෙ අතීතාවර්ජනයක් විදියට.</p>
+    </div>
+    <aside class="notes"><p>ඇය පසුව උත්සවය ඉවර වෙලා නගරයට යනවා. ගිහින් ඇයගේ ගමේ හිතවතෙකුට මේ කථාව ලිපියකින් දන්වනවා. ඒ කථාව තමයි මේ ගුරු ගීතය. මෙය කියවෙන්නෙ අතීතාවර්ජනයක් විදියට.</p></aside>
+  </section>
+
+  <!-- ===================== පිටුව 11 ===================== -->
+  <section class="slide" data-bg="1" data-sec="ගුරු ගීතය">
+    <div class="col">
+      <p class="kicker a">සෝවියට් බලය ස්ථාපනය කරනු ලබන කාලයේ</p>
+      <h2 class="title md a">කිර්ගීසියාව ප්‍රදේශයේ එක්දහස් නවසිය විසි ගණන් වල</h2>
+      <p class="body f">තරුණ අල්තිනායි ඇතුළු ලමයින්ට අධ්‍යාපනය සහ නීති රීති ගෙනා තරුණ ගුරුවරයෙකු වූ දුයිෂෙන්</p>
+    </div>
+    <aside class="notes"><p>මේ පොතේ විස්තර කරන සිදුවීම් සෝවියට් බලය ස්ථාපනය කරනු ලබන කාලයේ කිර්ගීසියාව ප්‍රදේශයේ එක්දහස් නවසිය විසි ගණන් වල සිදු වූවකි. තරුණ අල්තිනායි ඇතුළු ලමයින්ට අධ්‍යාපනය සහ නීති රීති ගෙනා තරුණ ගුරුවරයෙකු වූ දුයිෂෙන් හමුවීම හා බැඳුණු කථාවක් ආශ්‍රයෙන් ලියවුන නවකථාවකි.</p></aside>
+  </section>
+
+  <section class="slide" data-bg="1" data-sec="ගුරු ගීතය">
+    <div class="col">
+      <div class="who a">
+        <figure class="portrait" style="margin:0"><img src="refs/aitmatov.jpg" alt="Portrait photograph of Chingiz Aitmatov" width="200" height="280"></figure>
+        <div>
+          <p class="body muted" style="margin:0 0 6px">ප්‍රසිද්ධ සෝවියට් ලේඛකයෙකු</p>
+          <h3>චිංගීස් අයිත්මාතව්</h3>
+          <p class="credit">Photo: Mariusz Kubik · CC BY 2.5</p>
+        </div>
+      </div>
+      <p class="body muted f" style="margin-bottom:14px">ඔහුගේ විශාල සාහිත්‍ය කෘති ප්‍රමාණයක් ඇත.</p>
+      <ul class="chips f"><li>ධවල නෞකාව</li><li>මව්බිමේ අම්මා</li><li>ජමීලා</li><li>සමුගනිමු ගුල්සාරි</li></ul>
+    </div>
+    <aside class="notes"><p>මෙහි කතුවරයා ප්‍රසිද්ධ සෝවියට් ලේඛකයෙකු වූ <b>චිංගීස් අයිත්මාතව්</b> ය.</p><p>ඔහුගේ විශාල සාහිත්‍ය කෘති ප්‍රමාණයක් ඇත.</p><p>ධවල නෞකාව, මව්බිමේ අම්මා, ජමීලා, සමුගනිමු ගුල්සාරි ඉන් කීපයකි.</p></aside>
+  </section>
+
+  <section class="slide" data-bg="4" data-sec="මේ පොතේ සුවිශේෂී තැන්">
+    <div class="col">
+      <span class="num a">1.</span>
+      <p class="quote words">මම කවුළුව හැරියෙමි. කාමරය තුලට සිහිල් සුළං හමා එයි.</p>
+    </div>
+    <aside class="notes"><p><b>මේ පොතේ සුවිශේෂී තැන් -</b></p><p>1. මම කවුළුව හැරියෙමි. කාමරය තුලට සිහිල් සුළං හමා එයි.</p></aside>
+  </section>
+</div>
+
+<!-- viewport controls -->
+<div id="ui">
+  <button id="bPrev" aria-label="Previous"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+  <button id="bNext" aria-label="Next"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>
+  <button id="bNotes" aria-label="Narration notes (N)" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg></button>
+  <button id="bFull" aria-label="Full screen (F)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
+  <span id="count"></span>
+</div>
+<div id="hint">→ / Space next · N notes · P presenter view · F full screen</div>
+<div id="progress"></div>
+<section id="notes" aria-label="Narration notes"><div class="head">Narration</div><div id="notesBody"></div></section>
+
+<!-- presenter window (opened with P) -->
+<div id="presenter">
+  <header>
+    <strong id="pv-pos"></strong><span id="pv-step"></span>
+    <span class="spacer"></span>
+    <span id="pv-timer" title="Click to reset">00:00</span>
+    <button id="pv-prev">‹ Prev</button><button id="pv-next-btn">Next ›</button>
+  </header>
+  <div class="body-grid">
+    <main id="pv-notes"></main>
+    <div id="pv-side">
+      <div class="lbl">Now</div><div id="pv-cur"></div>
+      <div class="lbl">Next</div><div id="pv-next"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const BG = {
+    1: "Open Book in a Kyrgyz Valley-1.png",
+    2: "Together at the communal harvest-2.png",
+    3: "A Welcome at the Mountain School-3.png",
+    4: "Sunlit reading nook with open book-4.png",
+    5: "Watercolor Still Life of Shared Stories-5.png",
+    6: "refs/paper.jpg"
+  };
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const $ = (s, r = document) => r.querySelector(s);
+  const slides = [...document.querySelectorAll(".slide")];
+  const stage = $("#stage");
+  const total = slides.length;
+  let idx = 0, step = 0, bgOn = null, bgCur = null;
+
+  // per-slide setup: entrance order, step list, word splitting
+  slides.forEach((s, n) => {
+    s.setAttribute("role", "group");
+    s.setAttribute("aria-roledescription", "slide");
+    s.setAttribute("aria-label", `${n + 1} / ${total}`);
+    s.querySelectorAll(".a").forEach((el, i) => el.style.setProperty("--i", i));
+    s._frags = [...s.querySelectorAll(".f")];
+    s.querySelectorAll(".words").forEach(el => {
+      el.innerHTML = el.textContent.trim().split(/\s+/)
+        .map((w, i) => `<span style="--w:${i}">${w}</span>`).join(" ");
+    });
+  });
+
+  const titleOf = s => {
+    const h = s.querySelector("h1, h2, .quote, .title, .lead, li");
+    return h ? h.textContent.replace(/\s+/g, " ").trim() : "";
+  };
+  const notesOf = s => (s.querySelector("aside.notes") || {}).innerHTML || "";
+
+  /* ---------------- presenter window ---------------- */
+  if (location.hash === "#presenter") {
+    document.body.classList.add("presenter");
+    const opener = window.opener;
+    const send = cmd => opener ? opener.postMessage({ deck: cmd }, "*") : null;
+    let t0 = Date.now();
+    const timer = $("#pv-timer");
+    setInterval(() => {
+      const s = Math.floor((Date.now() - t0) / 1000);
+      timer.textContent = `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+    }, 500);
+    timer.onclick = () => { t0 = Date.now(); };
+    const render = (i, st) => {
+      const s = slides[i];
+      $("#pv-pos").textContent = `${i + 1} / ${total}`;
+      $("#pv-step").textContent = s._frags.length ? `step ${st} / ${s._frags.length}` : "";
+      $("#pv-notes").innerHTML = notesOf(s);
+      $("#pv-cur").textContent = titleOf(s);
+      $("#pv-next").textContent = slides[i + 1] ? titleOf(slides[i + 1]) : "—";
+      document.title = `Presenter · ${i + 1}/${total}`;
+    };
+    window.addEventListener("message", e => {
+      if (e.data && e.data.deckState) render(e.data.deckState.idx, e.data.deckState.step);
+    });
+    $("#pv-prev").onclick = () => send("prev");
+    $("#pv-next-btn").onclick = () => send("next");
+    document.addEventListener("keydown", e => {
+      if (["ArrowRight", "ArrowDown", "PageDown", " ", "Enter"].includes(e.key)) { e.preventDefault(); send("next"); }
+      if (["ArrowLeft", "ArrowUp", "PageUp", "Backspace"].includes(e.key)) { e.preventDefault(); send("prev"); }
+    });
+    render(0, 0);
+    send("hello");
+    return;
+  }
+
+  /* ---------------- deck ---------------- */
+  const fit = () => {
+    const s = Math.min(innerWidth / 1920, innerHeight / 1080);
+    stage.style.setProperty("--s", s);
+  };
+  addEventListener("resize", fit);
+  fit();
+
+  Object.values(BG).forEach(f => { const i = new Image(); i.src = encodeURI(f); });
+
+  const bgA = $("#bgA"), bgB = $("#bgB");
+  const setBg = key => {
+    if (key === bgCur) return;
+    bgCur = key;
+    const next = bgOn === bgA ? bgB : bgA;
+    next.style.backgroundImage = `url("${encodeURI(BG[key])}")`;
+    next.classList.add("on");
+    if (bgOn) bgOn.classList.remove("on");
+    bgOn = next;
+  };
+
+  const cover = $("#cover");
+  const track = $("#track"), trackItems = [...track.querySelectorAll("li")];
+  const setTrack = st => {
+    track.classList.toggle("on", !!st);
+    if (!st) return;
+    track.style.setProperty("--stage", st);
+    trackItems.forEach((li, i) => {
+      li.classList.toggle("done", i < st);
+      li.classList.toggle("cur", i === st - 1);
+    });
+  };
+
+  const countUp = s => s.querySelectorAll("[data-count]").forEach(el => {
+    const end = +el.dataset.count;
+    if (reduced) { el.textContent = end; return; }
+    const t0 = performance.now(), dur = 1400;
+    const tick = now => {
+      const p = Math.min(1, (now - t0) / dur);
+      el.textContent = Math.round(end * (1 - Math.pow(1 - p, 3)));
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    el.textContent = 0;
+    setTimeout(() => requestAnimationFrame(tick), 300);
+  });
+
+  let presenter = null;
+  const broadcast = () => {
+    if (presenter && !presenter.closed) presenter.postMessage({ deckState: { idx, step } }, "*");
+  };
+
+  const notes = $("#notes"), notesBody = $("#notesBody"), bNotes = $("#bNotes");
+  const sec = $("#sec");
+
+  const show = (n, st = 0) => {
+    n = Math.max(0, Math.min(total - 1, n));
+    const s = slides[n];
+    const changed = n !== idx || !s.classList.contains("active");
+    if (changed) {
+      slides[idx].classList.remove("active", "in");
+      slides[idx].setAttribute("aria-hidden", "true");
+      idx = n;
+      s.removeAttribute("aria-hidden");
+      s.classList.add("active");
+      void s.offsetWidth;            // restart entrance transitions
+      s.classList.add("in");
+      setBg(s.dataset.bg);
+      setTrack(+s.dataset.stage || 0);
+      cover.classList.toggle("on", s.hasAttribute("data-cover"));
+      sec.textContent = s.dataset.sec || "";
+      countUp(s);
+      notesBody.innerHTML = notesOf(s);
+    }
+    step = Math.max(0, Math.min(s._frags.length, st));
+    s._frags.forEach((f, i) => f.classList.toggle("shown", i < step));
+    $("#count").textContent = `${String(idx + 1).padStart(2, "0")} / ${total}`;
+    $("#progress").style.transform = `scaleX(${(idx + 1) / total})`;
+    history.replaceState(null, "", `#${idx + 1}`);
+    broadcast();
+  };
+
+  const next = () => {
+    const s = slides[idx];
+    if (step < s._frags.length) show(idx, step + 1);
+    else if (idx < total - 1) show(idx + 1, 0);
+  };
+  const prev = () => {
+    if (step > 0) show(idx, step - 1);
+    else if (idx > 0) show(idx - 1, slides[idx - 1]._frags.length);
+  };
+
+  const toggleNotes = force => {
+    const open = force ?? !notes.classList.contains("open");
+    notes.classList.toggle("open", open);
+    bNotes.setAttribute("aria-expanded", open);
+  };
+  const toggleFull = () => document.fullscreenElement
+    ? document.exitFullscreen() : document.documentElement.requestFullscreen?.();
+  const openPresenter = () => {
+    presenter = window.open(location.href.split("#")[0] + "#presenter", "deck-presenter", "width=1100,height=760");
+  };
+
+  const hint = $("#hint");
+  const hideHint = () => hint.classList.add("gone");
+  setTimeout(hideHint, 7000);
+
+  document.addEventListener("keydown", e => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const k = e.key;
+    if (["ArrowRight", "ArrowDown", "PageDown", " ", "Enter"].includes(k)) { e.preventDefault(); next(); }
+    else if (["ArrowLeft", "ArrowUp", "PageUp", "Backspace"].includes(k)) { e.preventDefault(); prev(); }
+    else if (k === "Home") show(0);
+    else if (k === "End") show(total - 1, slides[total - 1]._frags.length);
+    else if (k === "n" || k === "N") toggleNotes();
+    else if (k === "f" || k === "F") toggleFull();
+    else if (k === "p" || k === "P") openPresenter();
+    else if (k === "Escape") toggleNotes(false);
+    else return;
+    hideHint();
+  });
+
+  stage.addEventListener("click", e => {
+    if (e.target.closest("a, button")) return;
+    (e.clientX < innerWidth * 0.25) ? prev() : next();
+  });
+  let tx = null;
+  stage.addEventListener("touchstart", e => { tx = e.touches[0].clientX; }, { passive: true });
+  stage.addEventListener("touchend", e => {
+    if (tx === null) return;
+    const dx = e.changedTouches[0].clientX - tx;
+    if (Math.abs(dx) > 50) dx < 0 ? next() : prev();
+    tx = null;
+  });
+
+  $("#bPrev").onclick = prev;
+  $("#bNext").onclick = next;
+  bNotes.onclick = () => toggleNotes();
+  $("#bFull").onclick = toggleFull;
+
+  window.addEventListener("message", e => {
+    const c = e.data && e.data.deck;
+    if (c === "next") next();
+    else if (c === "prev") prev();
+    else if (c === "hello") { presenter = e.source; broadcast(); }
+  });
+
+  addEventListener("hashchange", () => {
+    const n = parseInt(location.hash.slice(1), 10);
+    if (Number.isFinite(n)) show(n - 1);
+  });
+
+  slides.forEach(s => s.setAttribute("aria-hidden", "true"));
+  const start = parseInt(location.hash.slice(1), 10);
+  idx = 0;
+  show(Number.isFinite(start) ? start - 1 : 0);
+})();
+</script>
+</body>
+</html>
