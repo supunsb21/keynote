@@ -10,6 +10,12 @@
   src: url("AFSandarenu-Regular.ttf") format("truetype");
   font-display: swap;
 }
+@font-face {
+  font-family: "Yaldevi";
+  src: url("fonts/Yaldevi-Variable.ttf") format("truetype");
+  font-weight: 200 700;
+  font-display: swap;
+}
 
 :root {
   --paper: #F1E9DA;
@@ -20,18 +26,20 @@
   --line: #CDBDA4;
   --leaf: #6F7F4E;
   --ease: cubic-bezier(.2, .7, .2, 1);
-  --font: "AFSandarenu", "Iowan Old Style", Georgia, "Sinhala Sangam MN", "Noto Serif Sinhala", serif;
-  --latin: "Iowan Old Style", Georgia, "Times New Roman", serif;
+  --head: "AFSandarenu", "Yaldevi", "Sinhala Sangam MN", sans-serif;
+  --font: "Yaldevi", "Sinhala Sangam MN", "Noto Sans Sinhala", sans-serif;
+  --latin: "Yaldevi", "Helvetica Neue", Arial, sans-serif;
+  --serif: Georgia, "Times New Roman", serif;
 }
 
 * { box-sizing: border-box; }
 html, body {
   margin: 0; height: 100%; overflow: hidden;
   background: var(--paper); color: var(--ink);
-  font-family: var(--font); font-synthesis: none;
+  font-family: var(--font); font-weight: 400; font-synthesis: none;
   -webkit-font-smoothing: antialiased;
 }
-b, strong { font-weight: 400; color: var(--accent); }
+b, strong { font-weight: 600; color: var(--accent); }
 button { font: inherit; }
 
 /* ---------- stage: fixed 1920×1080 canvas scaled to fit ---------- */
@@ -51,7 +59,7 @@ button { font: inherit; }
 
 #sec {
   position: absolute; left: 140px; top: 64px;
-  font-size: 26px; color: var(--muted);
+  font-size: 30px; font-weight: 400; color: var(--muted);
   transition: opacity .5s var(--ease);
 }
 
@@ -67,7 +75,8 @@ button { font: inherit; }
   opacity: 1; visibility: visible;
   transition: opacity .45s var(--ease) .05s, visibility 0s;
 }
-.col { width: 790px; }
+.col { width: 840px; }
+.slide[data-bg="5"] .col { width: 780px; }   /* this watercolour reaches further left */
 .slide[data-stage] .col { padding-top: 150px; }
 aside.notes { display: none; }
 
@@ -80,47 +89,49 @@ aside.notes { display: none; }
 .slide.in .a, .f.shown { opacity: 1; transform: none; }
 
 /* ---------- type ---------- */
+.display, .title, .huge, .quote, .who h3, .eq .row, .stairs li, .count,
+.ages .age, .types h3, .tier div, .chips li { font-family: var(--head); }
 .kicker {
   display: flex; align-items: center; gap: 18px;
-  font-size: 30px; color: var(--accent); margin: 0 0 30px;
+  font-size: 34px; font-weight: 500; color: var(--accent); margin: 0 0 30px;
 }
 .kicker::before { content: ""; width: 48px; height: 2px; background: currentColor; flex: none; }
-.display { font-size: 124px; line-height: 1.25; font-weight: 400; margin: 0 0 24px; }
-.display .sub { display: block; font-size: 76px; color: var(--accent); margin-top: 12px; }
-.title { font-size: 80px; line-height: 1.32; font-weight: 400; margin: 0 0 30px; }
-.title.md { font-size: 62px; }
-.lead { font-size: 44px; line-height: 1.6; margin: 0 0 20px; }
-.body { font-size: 36px; line-height: 1.6; margin: 0; }
+.display { font-size: 140px; line-height: 1.25; font-weight: 400; margin: 0 0 24px; }
+.display .sub { display: block; font-size: 88px; color: var(--accent); margin-top: 12px; }
+.title { font-size: 92px; line-height: 1.32; font-weight: 400; margin: 0 0 30px; }
+.title.md { font-size: 72px; }
+.lead { font-size: 52px; font-weight: 400; line-height: 1.55; margin: 0 0 20px; }
+.body { font-size: 42px; line-height: 1.6; margin: 0; }
 .muted { color: var(--muted); }
 .accent { color: var(--accent); }
-.latin { font-family: var(--latin); font-style: italic; }
-.quote { font-size: 58px; line-height: 1.55; margin: 0 0 28px; }
-.quote.sm { font-size: 46px; }
+.latin { font-family: var(--latin); font-weight: 400; }
+.quote { font-size: 66px; line-height: 1.55; margin: 0 0 28px; }
+.quote.sm { font-size: 52px; }
 .qmark {
-  font-family: var(--latin); font-size: 180px; line-height: .6;
+  font-family: var(--serif); font-size: 200px; line-height: .6;
   color: var(--accent-soft); display: block; height: 80px;
 }
-.huge { font-size: 230px; line-height: 1.1; margin: 0; font-weight: 400; color: var(--accent); }
+.huge { font-size: 250px; line-height: 1.1; margin: 0; font-weight: 400; color: var(--accent); }
 .num {
-  font-family: var(--latin); font-size: 30px; color: var(--accent);
+  font-family: var(--latin); font-size: 36px; font-weight: 600; color: var(--accent);
   letter-spacing: .08em; margin: 0 0 14px; display: block;
 }
-.credit { font-family: var(--latin); font-size: 17px; color: var(--muted); margin-top: 8px; }
+.credit { font-family: var(--latin); font-size: 20px; color: var(--muted); margin-top: 8px; }
 
 /* chips */
 .chips { display: flex; flex-wrap: wrap; gap: 16px 18px; margin: 10px 0 30px; padding: 0; list-style: none; }
 .chips li {
-  font-size: 36px; padding: 10px 28px 12px;
+  font-size: 42px; padding: 10px 30px 12px;
   border: 1.5px solid var(--line); border-radius: 999px;
   background: rgba(255, 252, 245, .55);
 }
-.chips.big li { font-size: 44px; }
+.chips.big li { font-size: 50px; }
 .chips li.hl { border-color: var(--accent); color: var(--accent); }
 
 /* bullet list */
 .list { list-style: none; margin: 0; padding: 0; }
-.list li { position: relative; padding-left: 46px; font-size: 38px; line-height: 1.55; margin-bottom: 22px; }
-.list.sm li { font-size: 33px; margin-bottom: 18px; }
+.list li { position: relative; padding-left: 50px; font-size: 44px; font-weight: 400; line-height: 1.5; margin-bottom: 22px; }
+.list.sm li { font-size: 38px; margin-bottom: 18px; }
 .list li::before {
   content: ""; position: absolute; left: 4px; top: .7em;
   width: 16px; height: 2px; background: var(--accent);
@@ -130,7 +141,7 @@ aside.notes { display: none; }
 .stairs { list-style: none; margin: 20px 0 0; padding: 0; }
 .stairs li {
   display: flex; align-items: center; gap: 22px;
-  font-size: 46px; line-height: 1.5; margin-bottom: 14px;
+  font-size: 54px; line-height: 1.5; margin-bottom: 14px;
   margin-left: calc(var(--k) * 64px);
 }
 .stairs li:first-child::before { display: none; }
@@ -141,50 +152,50 @@ aside.notes { display: none; }
 .stairs li:last-child { color: var(--accent); }
 
 /* hierarchy (owners above slaves) */
-.tier { display: grid; gap: 0; margin: 10px 0 34px; width: 560px; }
-.tier div { font-size: 44px; padding: 14px 0; text-align: center; }
+.tier { display: grid; gap: 0; margin: 10px 0 34px; width: 640px; }
+.tier div { font-size: 52px; padding: 14px 0; text-align: center; }
 .tier .top { border-bottom: 2px solid var(--accent); color: var(--accent); }
 .tier .low { color: var(--muted); }
 
 /* versus row */
-.vs { display: flex; align-items: center; gap: 26px; font-size: 40px; margin: 10px 0 26px; flex-wrap: wrap; }
+.vs { display: flex; align-items: center; gap: 26px; font-size: 46px; font-weight: 400; margin: 10px 0 26px; flex-wrap: wrap; }
 .vs .sep { width: 70px; height: 2px; background: var(--line); }
 
 /* equation */
 .eq { display: grid; gap: 6px; margin-top: 10px; }
-.eq .row { font-size: 54px; line-height: 1.45; }
+.eq .row { font-size: 62px; line-height: 1.45; }
 .eq .arrow { width: 2px; height: 42px; background: var(--line); margin-left: 24px; }
-.eq .final { color: var(--accent); font-size: 72px; }
+.eq .final { color: var(--accent); font-size: 84px; }
 
 /* three ages */
 .ages { display: flex; align-items: center; gap: 0; margin-top: 6px; }
-.ages .age { font-size: 44px; }
+.ages .age { font-size: 52px; }
 .ages .link { width: 64px; height: 2px; background: var(--line); margin: 0 22px; }
 
 /* big number */
-.count { font-size: 170px; line-height: 1.15; color: var(--accent); margin: 0 0 10px; }
+.count { font-size: 190px; line-height: 1.15; color: var(--accent); margin: 0 0 10px; }
 
 /* book types */
 .types { display: grid; gap: 26px; margin-top: 8px; }
 .types .t { display: grid; grid-template-columns: 90px 1fr; align-items: baseline; }
-.types .t > span { font-family: var(--latin); font-size: 30px; color: var(--accent); }
-.types h3 { font-size: 50px; font-weight: 400; margin: 0; line-height: 1.4; }
-.types h3 .latin { font-size: 32px; color: var(--muted); margin-left: 10px; }
-.types p { font-size: 34px; margin: 4px 0 0; color: var(--muted); }
+.types .t > span { font-family: var(--latin); font-size: 34px; font-weight: 600; color: var(--accent); }
+.types h3 { font-size: 58px; font-weight: 400; margin: 0; line-height: 1.4; }
+.types h3 .latin { font-size: 36px; font-family: var(--latin); color: var(--muted); margin-left: 10px; }
+.types p { font-size: 40px; margin: 4px 0 0; color: var(--muted); }
 
 /* page counts */
 .pages { display: flex; align-items: center; gap: 18px; margin-top: 18px; }
-.pages > span { font-size: 40px; color: var(--muted); margin-right: 6px; }
+.pages > span { font-size: 46px; color: var(--muted); margin-right: 6px; }
 .pages b {
-  font-family: var(--latin); font-size: 44px; width: 96px; height: 96px;
+  font-family: var(--latin); font-size: 48px; font-weight: 400; width: 110px; height: 110px;
   border-radius: 50%; border: 1.5px solid var(--accent);
   display: grid; place-items: center;
 }
 
 /* two books read in parallel */
 .bars { display: grid; gap: 22px; margin: 26px 0 30px; }
-.bar { display: grid; grid-template-columns: 250px 1fr; align-items: center; gap: 20px; }
-.bar > span { font-size: 34px; }
+.bar { display: grid; grid-template-columns: 290px 1fr; align-items: center; gap: 20px; }
+.bar > span { font-size: 40px; font-weight: 400; }
 .track { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; height: 20px; }
 .seg { background: var(--accent); border-radius: 3px; transform: scaleX(0); transform-origin: left; opacity: .85; }
 .bar:nth-child(2) .seg { background: var(--leaf); }
@@ -203,8 +214,8 @@ aside.notes { display: none; }
   filter: sepia(.45) saturate(.75) contrast(.95); mix-blend-mode: multiply;
 }
 .portrait.mark { display: grid; place-items: center; -webkit-mask-image: none; mask-image: none; }
-.portrait.mark span { font-family: var(--latin); font-size: 260px; color: var(--accent-soft); line-height: 1; }
-.who h3 { font-size: 60px; font-weight: 400; margin: 0; }
+.portrait.mark span { font-family: var(--serif); font-size: 260px; color: var(--accent-soft); line-height: 1; }
+.who h3 { font-size: 70px; font-weight: 400; margin: 0; }
 
 .cave { width: 790px; height: 300px; margin: 6px 0 26px; position: relative; }
 .cave img {
@@ -271,7 +282,7 @@ aside.notes { display: none; }
   border-radius: 50%; background: var(--paper); border: 2px solid var(--line);
   transition: background .5s, border-color .5s, transform .5s var(--ease);
 }
-#track li span { font-size: 25px; color: var(--muted); transition: color .5s; }
+#track li span { font-size: 28px; font-weight: 500; color: var(--muted); transition: color .5s; }
 #track li.done i { background: var(--accent); border-color: var(--accent); }
 #track li.cur i { transform: scale(1.45); box-shadow: 0 0 0 6px rgba(154, 69, 40, .14); }
 #track li.cur span { color: var(--accent); }
@@ -293,7 +304,7 @@ aside.notes { display: none; }
 #ui button:hover { border-color: var(--accent); }
 #ui button:focus-visible, #presenter button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 #ui svg { width: 20px; height: 20px; }
-#count { font-family: var(--latin); font-size: 15px; color: var(--muted); padding: 0 8px; font-variant-numeric: tabular-nums; }
+#count { font-family: var(--latin); font-size: 16px; color: var(--muted); padding: 0 8px; font-variant-numeric: tabular-nums; }
 #progress {
   position: fixed; left: 0; bottom: 0; height: 3px; width: 100%; z-index: 20;
   background: var(--accent); transform-origin: left; transform: scaleX(0);
@@ -301,7 +312,7 @@ aside.notes { display: none; }
 }
 #hint {
   position: fixed; right: 16px; bottom: 18px; z-index: 20;
-  font-family: var(--latin); font-size: 14px; color: var(--muted);
+  font-family: var(--latin); font-size: 15px; color: var(--muted);
   background: rgba(255, 252, 245, .85); padding: 8px 14px; border-radius: 20px;
   transition: opacity .6s;
 }
@@ -314,7 +325,7 @@ aside.notes { display: none; }
   background: #FBF7EF; border-top: 1px solid var(--line);
   box-shadow: 0 -12px 40px rgba(60, 40, 20, .12);
   padding: 22px max(16px, 6vw) 30px;
-  font-size: clamp(16px, 1.55vw, 24px); line-height: 1.85;
+  font-size: clamp(18px, 1.8vw, 28px); line-height: 1.85;
   transform: translateY(105%); transition: transform .35s var(--ease);
 }
 #notes.open { transform: none; }
@@ -341,11 +352,11 @@ body.presenter #presenter {
   border: 1px solid var(--line); background: #FBF7EF; color: var(--ink);
 }
 #presenter .body-grid { display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(220px, 1fr); }
-#pv-notes { padding: 28px 32px; font-size: clamp(18px, 2vw, 28px); line-height: 1.85; }
+#pv-notes { padding: 28px 32px; font-size: clamp(20px, 2.3vw, 32px); line-height: 1.85; }
 #pv-notes p { margin: 0 0 .8em; }
 #pv-side { border-left: 1px solid var(--line); padding: 28px 24px; }
 #pv-side .lbl { font-family: var(--latin); font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
-#pv-cur, #pv-next { font-size: 24px; line-height: 1.6; margin-bottom: 30px; }
+#pv-cur, #pv-next { font-size: 28px; line-height: 1.6; margin-bottom: 30px; }
 #pv-next { color: var(--muted); }
 @media (max-width: 700px) {
   #presenter .body-grid { grid-template-columns: 1fr; }
@@ -395,7 +406,7 @@ body.presenter #presenter {
   <section class="slide" data-bg="2" data-sec="මිනිසා කවුද?">
     <div class="col">
       <h1 class="display a">මිනිසා කවුද?</h1>
-      <p class="lead latin muted f" style="font-size:54px">Homo Sapiens Sapiens</p>
+      <p class="lead latin muted f" style="font-size:64px">Homo Sapiens Sapiens</p>
       <p class="lead f">නූතන මිනිසා, එනම් මේ අපි.</p>
     </div>
     <aside class="notes"><p><b>මිනිසා කවුද?</b> / Homo Sapiens Sapiens, නූතන මිනිසා, එනම් මේ අපි. මේ ලෝකයට බිහි වුනේ කවදාද?</p></aside>
@@ -612,10 +623,10 @@ body.presenter #presenter {
   <section class="slide" data-bg="5" data-sec="සාහිත්‍යය">
     <div class="col">
       <div class="eq">
-        <div class="row a" style="font-size:80px">සාහිත්‍යය</div>
+        <div class="row a" style="font-size:96px">සාහිත්‍යය</div>
         <div class="arrow f"></div>
         <div class="row f">සහිත බව</div>
-        <div class="row muted f" style="font-size:40px">යමක් ඇති බව</div>
+        <div class="row muted f" style="font-size:46px; font-family:var(--font)">යමක් ඇති බව</div>
         <div class="arrow f"></div>
         <div class="row final f">මානව අත්දැකීම්</div>
       </div>
